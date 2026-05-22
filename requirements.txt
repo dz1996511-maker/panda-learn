@@ -1,0 +1,32 @@
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+jinja2>=3.1.0
+python-multipart>=0.0.9
+
+# Database
+sqlalchemy[asyncio]>=2.0.0
+aiosqlite>=0.20.0
+
+# LLM providers
+anthropic>=0.65.0
+openai>=1.55.0
+
+# Vector storage
+chromadb>=0.6.0
+
+# Document parsing
+PyMuPDF>=1.24.0
+markdown-it-py>=4.0.0
+lxml>=5.0.0
+
+# Text processing
+tiktoken>=0.8.0
+
+# Configuration
+pydantic-settings>=2.7.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+httpx>=0.28.0

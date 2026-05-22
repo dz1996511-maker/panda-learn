@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}知识库 - 熊猫学习{% endblock %}
+{% block page_title %}知识库{% endblock %}
+{% block header_actions %}
+<a href="/knowledge/upload/" class="btn btn-primary btn-sm">+ 导入</a>
+{% endblock %}
+{% block content %}
+
+{% if error %}
+<div class="chat-bubble" style="border-color:#5a1a1a;">
+    <span style="color:#ff6b6b;">{{ error }}</span>
+</div>
+{% endif %}
+
+{% if documents %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>标题</th>
+            <th>类型</th>
+            <th>分块</th>
+            <th>导入时间</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for doc in documents %}
+        <tr>
+            <td><a href="/knowledge/{{ doc.id }}">{{ doc.title }}</a></td>
+            <td><span class="tag tag-learning">{{ doc.file_type or doc.source_type }}</span></td>
+            <td>{{ doc.chunk_count }}</td>
+            <td style="color:#666;font-size:12px;">{{ doc.imported_at.strftime('%Y-%m-%d %H:%M') if doc.imported_at else '-' }}</td>
+            <td>
+                <form action="/knowledge/{{ doc.id }}/delete" method="post" onsubmit="return confirm('确定删除？')">
+                    <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>📚 知识库还空空的</p>
+    <p style="font-size:12px;">导入你的第一份资料吧</p>
+    <a href="/knowledge/upload/" class="btn btn-primary" style="margin-top:12px;">导入资料</a>
+</div>
+{% endif %}
+{% endblock %}

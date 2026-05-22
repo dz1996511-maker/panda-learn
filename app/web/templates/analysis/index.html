@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}分析 - 熊猫学习{% endblock %}
+{% block page_title %}学习分析{% endblock %}
+{% block content %}
+
+<div class="card-grid">
+    <div class="card">
+        <div class="card-value">{{ report.document_count }}</div>
+        <div class="card-label">文档数</div>
+    </div>
+    <div class="card">
+        <div class="card-value">{{ report.knowledge_point_count }}</div>
+        <div class="card-label">知识点</div>
+    </div>
+    <div class="card">
+        <div class="card-value">{{ report.practice_count }}</div>
+        <div class="card-label">练习次数</div>
+    </div>
+    <div class="card">
+        <div class="card-value">{{ report.average_mastery }}%</div>
+        <div class="card-label">平均掌握度</div>
+    </div>
+</div>
+
+<div class="chat-bubble">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">📊 需要加强的知识点</span>
+    </div>
+    {% if report.weakest_points %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>知识点</th>
+                <th>掌握度</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for wp in report.weakest_points %}
+            <tr>
+                <td>{{ wp.label }}</td>
+                <td>
+                    <progress value="{{ wp.mastery }}" max="100"></progress>
+                    <span style="font-size:12px;color:#888;">{{ wp.mastery }}%</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state" style="padding:24px 0;">
+        <p>暂无数据</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="chat-bubble">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">📄 文档分析</span>
+    </div>
+    {% if documents %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>文档</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in documents %}
+            <tr>
+                <td>{{ doc.title }}</td>
+                <td>
+                    <form action="/analysis/summarize/{{ doc.id }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm">生成摘要</button>
+                    </form>
+                    <form action="/analysis/extract-concepts/{{ doc.id }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm">提取概念</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state" style="padding:24px 0;">
+        <p>暂无文档</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

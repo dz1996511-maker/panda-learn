@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}测验 - 熊猫学习{% endblock %}
+{% block page_title %}✍️ 测验{% endblock %}
+{% block header_actions %}
+<a href="/practice/" class="btn btn-sm">← 练习</a>
+{% endblock %}
+{% block content %}
+
+<div style="text-align:center;font-size:12px;color:#555;margin-bottom:12px;">
+    共 <strong style="color:#888;">{{ total }}</strong> 题
+    <span id="progress-text" style="margin-left:12px;">已完成 0/{{ total }}</span>
+</div>
+<progress id="quiz-progress" value="0" max="{{ total }}" style="margin-bottom:16px;"></progress>
+
+<div id="quiz-container">
+{% for q in questions %}
+<div class="quiz-card chat-bubble" id="q-{{ loop.index0 }}" style="{% if loop.index0 > 0 %}display:none;{% endif %}">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">
+            {% if q.type == 'choice' %}选择题
+            {% elif q.type == 'judge' %}判断题
+            {% elif q.type == 'fill' %}填空题
+            {% else %}题目{% endif %}
+        </span>
+        <span style="font-size:11px;color:#555;">#{{ loop.index }} / {{ total }}</span>
+    </div>
+
+    <p style="margin-bottom:16px;line-height:1.8;">{{ q.question }}</p>
+
+    <!-- 选择题 -->
+    {% if q.type == 'choice' and q.options %}
+    <div id="options-{{ loop.index0 }}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        {% for opt in q.options %}
+        <label class="quiz-option" onclick="selectOption(this, '{{ loop.index0 }}')">
+            <input type="radio" name="q{{ loop.index0 }}" value="{{ opt[0] }}" style="display:none;">
+            <span class="option-text">{{ opt }}</span>
+        </label>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 判断题 -->
+    {% if q.type == 'judge' %}
+    <div id="options-{{ loop.index0 }}" style="display:flex;gap:16px;margin-bottom:16px;">
+        <label class="quiz-option" onclick="selectOption(this, '{{ loop.index0 }}')" style="flex:1;text-align:center;padding:16px;">
+            <input type="radio" name="q{{ loop.index0 }}" value="对" style="display:none;">
+            <span style="font-size:16px;">○ 对</span>
+        </label>
+        <label class="quiz-option" onclick="selectOption(this, '{{ loop.index0 }}')" style="flex:1;text-align:center;padding:16px;">
+            <input type="radio" name="q{{ loop.index0 }}" value="错" style="display:none;">
+            <span style="font-size:16px;">○ 错</span>
+        </label>
+    </div>
+    {% endif %}
+
+    <!-- 填空题 -->
+    {% if q.type == 'fill' %}
+    <div style="margin-bottom:16px;">
+        <input type="text" id="fill-{{ loop.index0 }}" class="form-input" placeholder="填入你的答案..." style="width:100%;">
+    </div>
+    {% endif %}
+
+    <!-- 答案与解析（初始隐藏） -->
+    <div id="result-{{ loop.index0 }}" style="display:none;padding:12px;border-radius:8px;margin-bottom:12px;"></div>
+
+    <!-- 按钮 -->
+    <div style="display:flex;gap:8px;">
+        <button id="submit-{{ loop.index0 }}" class="btn btn-primary" onclick="submitAnswer({{ loop.index0 }}, {{ total }})">提交</button>
+        <button id="next-{{ loop.index0 }}" class="btn" onclick="nextQuestion({{ loop.index0 }}, {{ total }})" style="display:none;">
+            {% if loop.index0 < total - 1 %}下一题 →{% else %}查看结果{% endif %}
+        </button>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- 结果页面（初始隐藏） -->
+<div id="result-page" class="chat-bubble" style="display:none;text-align:center;padding:32px;">
+    <div style="font-size:32px;margin-bottom:12px;">🎉</div>
+    <h2 style="color:#e0e0e0;margin-bottom:8px;">测验完成！</h2>
+    <div style="font-size:48px;font-weight:700;color:#4fc3f7;margin:16px 0;" id="score-display">0/0</div>
+    <div style="font-size:13px;color:#888;" id="score-detail"></div>
+    <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;">
+        <a href="/practice/" class="btn">返回练习</a>
+        <a href="/practice/start" class="btn btn-primary" onclick="event.preventDefault();startQuiz()">再来一套</a>
+    </div>
+</div>
+
+<script>
+var answers = {};
+
+function selectOption(el, qIdx) {
+    var parent = document.getElementById('options-' + qIdx);
+    parent.querySelectorAll('.quiz-option').forEach(function(o) {
+        o.classList.remove('selected');
+    });
+    el.classList.add('selected');
+    answers[qIdx] = el.querySelector('input').value;
+}
+
+function submitAnswer(qIdx, total) {
+    var resultDiv = document.getElementById('result-' + qIdx);
+    var submitBtn = document.getElementById('submit-' + qIdx);
+    var nextBtn = document.getElementById('next-' + qIdx);
+
+    // 获取用户答案
+    {% for q in questions %}
+    {% if loop.index0 < 10 %}
+    if (qIdx === {{ loop.index0 }}) {
+        var userAnswer = '';
+        {% if q.type == 'fill' %}
+        userAnswer = document.getElementById('fill-{{ loop.index0 }}').value.trim();
+        {% else %}
+        userAnswer = answers[qIdx] || '';
+        {% endif %}
+
+        var correct = '{{ q.answer|e }}';
+        var isCorrect = userAnswer.toLowerCase() === correct.toLowerCase();
+        answers[qIdx + '_result'] = isCorrect;
+
+        if (isCorrect) {
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#0a2a0a';
+            resultDiv.innerHTML = '<span style="color:#66bb6a;">✓ 回答正确！</span>';
+        } else {
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#2a0a0a';
+            resultDiv.innerHTML = '<span style="color:#ff6b6a;">✗ 回答错误</span><br><span style="font-size:12px;color:#888;">正确答案：' + correct + '</span>';
+        }
+        {% if q.explanation %}
+        resultDiv.innerHTML += '<div style="margin-top:8px;font-size:12px;color:#888;">💡 ' + '{{ q.explanation|e }}' + '</div>';
+        {% endif %}
+
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-flex';
+
+        // 更新进度
+        var done = Object.keys(answers).filter(function(k) { return k.indexOf('_result') > 0; }).length;
+        document.getElementById('progress-text').textContent = '已完成 ' + done + '/' + total;
+        document.getElementById('quiz-progress').value = done;
+    }
+    {% endif %}
+    {% endfor %}
+}
+
+function nextQuestion(qIdx, total) {
+    if (qIdx + 1 < total) {
+        document.getElementById('q-' + qIdx).style.display = 'none';
+        document.getElementById('q-' + (qIdx + 1)).style.display = 'block';
+        // 滚动到顶部
+        document.getElementById('q-' + (qIdx + 1)).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        // 显示结果页
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('result-page').style.display = 'block';
+
+        var correct = 0;
+        var totalQ = 0;
+        Object.keys(answers).forEach(function(k) {
+            if (k.indexOf('_result') > 0) {
+                totalQ++;
+                if (answers[k]) correct++;
+            }
+        });
+        document.getElementById('score-display').textContent = correct + '/' + totalQ;
+        document.getElementById('score-detail').textContent = '正确率 ' + Math.round(correct/totalQ*100) + '%';
+        document.getElementById('quiz-progress').value = totalQ;
+    }
+}
+
+function startQuiz() {
+    window.location.href = '/practice/start';
+}
+</script>
+
+<style>
+.quiz-option {
+    display: block;
+    padding: 10px 14px;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.12s;
+    font-size: 13px;
+}
+.quiz-option:hover { border-color: #4a4a4a; background: #111; }
+.quiz-option.selected { border-color: #4fc3f7; background: #0d1a2d; }
+.quiz-option.selected .option-text { color: #4fc3f7; }
+</style>
+{% endblock %}

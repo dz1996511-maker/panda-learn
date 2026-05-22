@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ doc.title }} - 熊猫学习<script>
+function startPracticeFromDoc(fileId, fileName) {
+    KnowledgeStore.setLearningTarget(fileId, fileName);
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/practice/start';
+    form.innerHTML = '<input name="file_id" value="' + fileId + '">';
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}
+{% block page_title %}{{ doc.title }}<script>
+function startPracticeFromDoc(fileId, fileName) {
+    KnowledgeStore.setLearningTarget(fileId, fileName);
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/practice/start';
+    form.innerHTML = '<input name="file_id" value="' + fileId + '">';
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}
+{% block header_actions %}
+<a href="/knowledge/" class="btn btn-sm">← 知识库</a>
+<script>
+function startPracticeFromDoc(fileId, fileName) {
+    KnowledgeStore.setLearningTarget(fileId, fileName);
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/practice/start';
+    form.innerHTML = '<input name="file_id" value="' + fileId + '">';
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}
+{% block content %}
+
+<div class="card-grid">
+    <div class="card">
+        <div class="card-label">类型</div>
+        <div style="margin-top:4px;">{{ doc.file_type or doc.source_type }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">字数</div>
+        <div style="margin-top:4px;">{{ doc.char_count }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">分块数</div>
+        <div style="margin-top:4px;">{{ doc.chunk_count }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">导入时间</div>
+        <div style="margin-top:4px;font-size:12px;">{{ doc.imported_at.strftime('%Y-%m-%d %H:%M') if doc.imported_at else '-' }}</div>
+    </div>
+</div>
+
+<div class="chat-bubble" style="border-color:#1a3a1a;">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">🎯 操作</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <form action="/analysis/extract-concepts/{{ doc.id }}" method="post" style="display:inline;"
+              onsubmit="document.getElementById('extract-msg').textContent='⏳ 提取中...';">
+            <button type="submit" class="btn btn-primary">🔍 提取知识点</button>
+        </form>
+        <form action="/analysis/summarize/{{ doc.id }}" method="post" style="display:inline;"
+              onsubmit="document.getElementById('extract-msg').textContent='⏳ 生成中...';">
+            <button type="submit" class="btn">📝 生成摘要</button>
+        </form>
+        <a href="/learning/" class="btn" onclick="KnowledgeStore.setLearningTarget('{{ doc.id }}', '{{ doc.title }}');">🧠 去学习</a>
+        <button class="btn btn-primary" onclick="startPracticeFromDoc('{{ doc.id }}', '{{ doc.title }}')">✍️ 开始练习</button>
+        <form action="/knowledge/{{ doc.id }}/delete" method="post" style="display:inline;" onsubmit="return confirm('确定删除？')">
+            <button type="submit" class="btn btn-danger btn-sm">🗑️ 删除</button>
+        </form>
+    </div>
+    <div id="extract-msg" style="margin-top:8px;font-size:12px;color:#4fc3f7;"></div>
+</div>
+
+{% if doc.summary %}
+<div class="chat-bubble">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">📝 摘要</span>
+    </div>
+    <p style="color:#aaa;">{{ doc.summary }}</p>
+</div>
+{% endif %}
+
+<div class="chat-bubble">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">📄 全文</span>
+        <span style="font-size:11px;color:#555;">{{ doc.chunk_count }} 个分块</span>
+    </div>
+    <pre style="max-height:400px;">{{ doc.raw_text }}</pre>
+</div>
+<script>
+function startPracticeFromDoc(fileId, fileName) {
+    KnowledgeStore.setLearningTarget(fileId, fileName);
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/practice/start';
+    form.innerHTML = '<input name="file_id" value="' + fileId + '">';
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

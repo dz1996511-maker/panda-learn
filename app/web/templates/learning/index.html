@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}学习 - 熊猫学习{% endblock %}
+{% block page_title %}🧠 学习{% endblock %}
+{% block content %}
+
+{% if doc_count > 0 %}
+<div class="chat-bubble" style="border-color:#1a3a1a;">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">💬 问关于文档的问题</span>
+    </div>
+    <p style="color:#aaa;line-height:1.8;">
+        你导入了 <strong style="color:#4fc3f7;">{{ doc_count }}</strong> 份文档。
+        直接在底部输入框提问，我会根据你的文档回答。
+    </p>
+    <div style="margin-top:12px;font-size:12px;color:#666;line-height:2;">
+        试试问这些：<br>
+        • "我导入的文档主要讲了什么？"<br>
+        • "帮我总结一下关键概念"<br>
+        • "根据资料解释一下XX原理"
+    </div>
+    <div style="margin-top:16px;">
+        <a href="/practice/" class="btn btn-primary">✍️ 去做练习</a>
+        <span style="font-size:11px;color:#555;margin-left:8px;">练习会自动基于当前学习内容出题</span>
+    </div>
+</div>
+{% else %}
+<div class="chat-bubble" style="text-align:center;padding:32px;">
+    <div style="font-size:16px;color:#888;margin-bottom:8px;">📚 还没有导入文档</div>
+    <p style="font-size:13px;color:#666;margin-bottom:16px;">先去知识库导入 PDF、TXT 或 MD 文件</p>
+    <a href="/knowledge/upload/" class="btn btn-primary">导入文档</a>
+</div>
+{% endif %}
+
+{% if kp_count > 0 %}
+<div class="chat-bubble" style="margin-top:12px;">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">📋 已提取的知识点</span>
+        <span style="font-size:11px;color:#555;">{{ kp_count }} 个</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        {% for kp in knowledge_points %}
+        <a href="/learning/start/{{ kp.id }}" class="btn btn-sm" style="font-size:11px;">
+            {{ kp.label }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

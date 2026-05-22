@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}首页 - 熊猫学习{% endblock %}
+{% block page_title %}首页{% endblock %}
+{% block content %}
+
+<div class="card-grid">
+    <div class="card" id="stat-docs">
+        <div class="card-value">-</div>
+        <div class="card-label">知识库文档</div>
+    </div>
+    <div class="card" id="stat-kps">
+        <div class="card-value">-</div>
+        <div class="card-label">知识点</div>
+    </div>
+    <div class="card" id="stat-due">
+        <div class="card-value">-</div>
+        <div class="card-label">待复习</div>
+    </div>
+</div>
+
+<div class="card-grid">
+    <a href="/knowledge/upload/" class="card" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:8px;">
+        <canvas id="card-icon-knowledge" data-icon="knowledge" width="40" height="40" style="width:40px;height:40px;image-rendering:pixelated;"></canvas>
+        <div class="card-label">导入知识库</div>
+    </a>
+    <a href="/learning/" class="card" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:8px;">
+        <canvas id="card-icon-learning" data-icon="learning" width="40" height="40" style="width:40px;height:40px;image-rendering:pixelated;"></canvas>
+        <div class="card-label">开始学习</div>
+    </a>
+    <a href="/practice/" class="card" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:8px;">
+        <canvas id="card-icon-practice" data-icon="practice" width="40" height="40" style="width:40px;height:40px;image-rendering:pixelated;"></canvas>
+        <div class="card-label">开始练习</div>
+    </a>
+</div>
+
+<script>
+async function loadStats() {
+    try {
+        const r = await fetch('/api/stats');
+        const d = await r.json();
+        document.getElementById('stat-docs').querySelector('.card-value').textContent = d.document_count;
+        document.getElementById('stat-kps').querySelector('.card-value').textContent = d.knowledge_point_count;
+        document.getElementById('stat-due').querySelector('.card-value').textContent = d.due_count;
+    } catch(e) {}
+}
+loadStats();
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}练习 - 熊猫学习{% endblock %}
+{% block page_title %}✍️ 练习{% endblock %}
+{% block content %}
+
+{% if error %}
+<div class="chat-bubble" style="border-color:#5a1a1a;text-align:center;padding:24px;">
+    <div style="font-size:32px;margin-bottom:8px;">🔑</div>
+    <p style="color:#ff6b6b;margin-bottom:12px;">{{ error }}</p>
+    <a href="/settings/" class="btn btn-primary btn-sm">去设置</a>
+</div>
+{% endif %}
+
+{% if doc_count == 0 %}
+<div class="empty-state">
+    <p>📚 还没有导入文档</p>
+    <p style="font-size:12px;">先去知识库导入资料，然后这里会自动出题</p>
+    <a href="/knowledge/upload/" class="btn btn-primary" style="margin-top:12px;">导入文档</a>
+</div>
+{% else %}
+
+<div class="chat-bubble" style="border-color:#1a3a1a;">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">📝 智能测验</span>
+    </div>
+    <p style="color:#aaa;line-height:1.8;">
+        将根据你正在学习的内容自动生成练习题。
+    </p>
+</div>
+
+<div class="card-grid">
+    <div class="card" onclick="startQuiz()" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:8px;">
+        <div style="font-size:28px;">🎯</div>
+        <div class="card-label">基于当前学习内容出题</div>
+        <div style="font-size:11px;color:#555;">自动从你正在看的文档出题</div>
+    </div>
+
+    <div class="card" onclick="showFilePicker()" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:8px;">
+        <div style="font-size:28px;">📂</div>
+        <div class="card-label">选择其他文档出题</div>
+        <div style="font-size:11px;color:#555;">从已导入的文档中选择</div>
+    </div>
+</div>
+
+<!-- 文件选择弹窗（隐藏） -->
+<div id="file-picker" style="display:none;" class="chat-bubble">
+    <div class="chat-bubble-header">
+        <span class="chat-bubble-title">选择要练习的文档</span>
+        <button class="kb-selector-close" onclick="hideFilePicker()">✕</button>
+    </div>
+    <div id="practice-file-list"></div>
+</div>
+
+<script>
+function startQuiz() {
+    const state = KnowledgeStore.getState();
+    const target = state.learningTarget || {};
+    const fileId = target.fileId || state.activeFileId;
+
+    if (fileId) {
+        // 基于当前学习上下文出题
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/practice/start';
+        form.innerHTML = '<input name="file_id" value="' + fileId + '">';
+        document.body.appendChild(form);
+        form.submit();
+    } else if (state.files.length > 0) {
+        // 有文件但没激活，选一个
+        showFilePicker();
+    } else {
+        window.location.href = '/knowledge/upload/';
+    }
+}
+
+function showFilePicker() {
+    var picker = document.getElementById('file-picker');
+    picker.style.display = 'block';
+    var list = document.getElementById('practice-file-list');
+    var state = KnowledgeStore.getState();
+    if (state.files.length === 0) {
+        list.innerHTML = '<div style="padding:16px;text-align:center;color:#555;">暂无文件</div>';
+        return;
+    }
+    var html = '';
+    state.files.forEach(function(f) {
+        html += '<div style="padding:10px 14px;border:1px solid #1a1a1a;border-radius:8px;margin-bottom:6px;cursor:pointer;" onclick="startQuizWithFile(' + f.id + ')">' +
+                '<div style="font-size:13px;color:#e0e0e0;">' + f.name + '</div>' +
+                '<div style="font-size:11px;color:#555;">' + (f.fileType || '') + '</div>' +
+                '</div>';
+    });
+    list.innerHTML = html;
+}
+
+function hideFilePicker() {
+    document.getElementById('file-picker').style.display = 'none';
+}
+
+function startQuizWithFile(fileId) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/practice/start';
+    form.innerHTML = '<input name="file_id" value="' + fileId + '">';
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endif %}
+{% endblock %}

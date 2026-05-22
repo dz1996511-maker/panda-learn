@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}熊猫学习{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- 左侧导航栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-panda" id="sidebar-panda" title="点击领鼓励">
+                <canvas id="pixel-panda-canvas" width="48" height="48"></canvas>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}" title="首页">
+                    <canvas id="icon-home" data-icon="home" width="30" height="30"></canvas>
+                    <span class="tooltip">首页</span>
+                </a>
+                <a href="/knowledge/" class="nav-item {% if request.url.path.startswith('/knowledge') %}active{% endif %}" title="知识库">
+                    <canvas id="icon-knowledge" data-icon="knowledge" width="30" height="30"></canvas>
+                    <span class="tooltip">知识库</span>
+                </a>
+                <a href="/learning/" class="nav-item {% if request.url.path.startswith('/learning') %}active{% endif %}" title="学习">
+                    <canvas id="icon-learning" data-icon="learning" width="30" height="30"></canvas>
+                    <span class="tooltip">学习</span>
+                </a>
+                <a href="/practice/" class="nav-item {% if request.url.path.startswith('/practice') %}active{% endif %}" title="练习">
+                    <canvas id="icon-practice" data-icon="practice" width="30" height="30"></canvas>
+                    <span class="tooltip">练习</span>
+                </a>
+                <a href="/analysis/" class="nav-item {% if request.url.path.startswith('/analysis') %}active{% endif %}" title="分析">
+                    <canvas id="icon-analysis" data-icon="analysis" width="30" height="30"></canvas>
+                    <span class="tooltip">分析</span>
+                </a>
+            </nav>
+            <button class="sidebar-kb-btn" onclick="toggleKbSelector()" title="管理知识库">📚</button>
+            <div class="sidebar-bottom">
+                <a href="/settings/" class="nav-item {% if request.url.path.startswith('/settings') %}active{% endif %}" title="设置">
+                    <canvas id="icon-settings" data-icon="settings" width="30" height="30"></canvas>
+                    <span class="tooltip">设置</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>{% block page_title %}熊猫学习{% endblock %}</h1>
+                <div class="header-actions">
+                    {% block header_actions %}{% endblock %}
+                </div>
+            </div>
+            <div class="content-body" id="chat-messages">
+                <div class="chat-container">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+            <!-- API Key 未配置提示横幅 -->
+            <div id="api-key-banner" style="display:none;padding:8px 32px;background:#1a0a0a;border-bottom:1px solid #3a1a1a;text-align:center;font-size:12px;">
+                <span style="color:#ff6b6b;">⚠ 未配置 API Key — </span>
+                <a href="/settings/" style="color:#4fc3f7;">去设置 →</a>
+            </div>
+            <!-- 底部聊天输入框 -->
+            <div class="chat-input-area">
+                <div class="kb-indicator" id="kb-indicator">
+                    <span>📚 知识库：</span><span id="kb-name" style="color:#4fc3f7;">未选择</span><span id="kb-status" style="margin-left:auto;font-size:11px;"></span>
+                </div>
+                <form class="chat-input-form" hx-post="/api/chat" hx-target="#chat-messages .chat-container" hx-swap="beforeend"
+                      hx-on::after-request="this.reset(); setTimeout(function(){var el=document.getElementById('chat-messages');el.scrollTop=el.scrollHeight;},50);">
+                    <input type="hidden" name="knowledge_base_id" id="kb-input" value="">
+                    <input type="text" name="message" class="chat-input" placeholder="问关于知识库的问题..." required autocomplete="off">
+                    <button type="submit" class="chat-send-btn">➤</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- 知识库选择器 -->
+    <div class="kb-selector-overlay" id="kb-selector">
+        <div class="kb-selector-dialog">
+            <div class="kb-selector-header">
+                <div class="kb-selector-title">📚 选择知识库</div>
+                <button class="kb-selector-close" onclick="toggleKbSelector()">✕</button>
+            </div>
+            <div id="kb-selector-panel"></div>
+        </div>
+    </div>
+    <script>
+    function toggleKbSelector() {
+        document.getElementById('kb-selector').classList.toggle('open');
+        renderKbSelector();
+    }
+    // 点击遮罩关闭
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('kb-selector').addEventListener('click', function(e) {
+            if (e.target === this) toggleKbSelector();
+        });
+    });
+    </script>
+
+    <!-- 🐼 右下角熊猫伴侣 -->
+    <div id="panda-companion">
+        <div id="panda-speech">你好！我是你的像素熊猫！</div>
+        <div id="panda-character">
+            <canvas id="pixel-panda-mini" width="48" height="48"></canvas>
+        </div>
+    </div>
+
+    <script src="/static/js/knowledge-store.js"></script>
+    <script src="/static/js/kb-selector.js"></script>
+    <script src="/static/js/pixel-panda.js"></script>
+    <script src="/static/js/pixel-icons.js"></script>
+    <script src="/static/js/panda.js"></script>
+
+    <!-- 知识库 Store 同步脚本 -->
+    <script>
+    // 检查 API Key 是否配置
+    async function checkApiKey() {
+        try {
+            const resp = await fetch('/api/check-api-key');
+            const data = await resp.json();
+            const banner = document.getElementById('api-key-banner');
+            if (banner) {
+                banner.style.display = data.configured ? 'none' : 'block';
+            }
+        } catch(e) {}
+    }
+
+    // 从后端加载文件列表，同步到本地 Store
+    async function syncKnowledgeStore() {
+        try {
+            KnowledgeStore.setLoading(true);
+            const resp = await fetch('/api/knowledge-store/files');
+            const data = await resp.json();
+            if (data.files) {
+                const local = KnowledgeStore.getState();
+                KnowledgeStore.setFiles(data.files);
+                if (local.activeFileId) {
+                    const stillExists = data.files.find(f => f.id === local.activeFileId);
+                    if (!stillExists) KnowledgeStore.clearActiveFile();
+                } else if (data.files.length === 1) {
+                    KnowledgeStore.setActiveFile(data.files[0].id);
+                }
+                updateKbUI();
+            }
+        } catch(e) { console.warn('syncKnowledgeStore:', e); }
+        finally { KnowledgeStore.setLoading(false); }
+    }
+
+    // 更新知识库 UI（指示器 + 隐藏输入 + 加载状态）
+    function updateKbUI() {
+        const state = KnowledgeStore.getState();
+        const kbName = document.getElementById('kb-name');
+        const kbInput = document.getElementById('kb-input');
+        const kbIndicator = document.getElementById('kb-indicator');
+        const kbStatus = document.getElementById('kb-status');
+
+        if (kbName && kbInput) {
+            if (state.error) {
+                kbName.textContent = '⚠ ' + state.error.message;
+                kbInput.value = '';
+                kbIndicator.className = 'kb-indicator error';
+                if (kbStatus) kbStatus.textContent = '';
+                return;
+            }
+            if (state.isLoading) {
+                kbName.textContent = '加载中...';
+                if (kbStatus) kbStatus.textContent = '⏳';
+                kbIndicator.className = 'kb-indicator loading';
+                return;
+            }
+            const active = state.files.find(f => f.id === state.activeFileId);
+            if (active) {
+                kbName.textContent = active.name;
+                kbInput.value = active.id;
+                kbIndicator.className = 'kb-indicator active';
+            } else {
+                kbName.textContent = state.files.length > 0 ? '请选择知识库' : '未选择';
+                kbInput.value = '';
+                kbIndicator.className = 'kb-indicator';
+            }
+            if (kbStatus) kbStatus.textContent = '';
+        }
+    }
+
+    // 更新导入状态
+    function updateImportUI() {
+        const state = KnowledgeStore.getState();
+        const btn = document.getElementById('import-btn');
+        if (btn) {
+            if (state.isImporting) {
+                btn.disabled = true;
+                btn.textContent = state.importQueue > 0
+                    ? '导入中(' + state.importQueue + ')...'
+                    : '导入中...';
+            } else {
+                btn.disabled = false;
+                btn.textContent = '导入';
+            }
+        }
+    }
+
+    // Store 变化时更新 UI
+    document.addEventListener('knowledge-store-change', () => {
+        updateKbUI();
+        updateImportUI();
+    });
+
+    // 页面加载时同步一次
+    document.addEventListener('DOMContentLoaded', function() { syncKnowledgeStore(); checkApiKey(); });
+    </script>
+
+</body>
+</html>
