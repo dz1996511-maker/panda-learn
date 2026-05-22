@@ -1,7 +1,6 @@
 """
-AI 学习助手 — 桌面启动器
-启动服务并在 Chrome App 模式中打开（无边框桌面窗口）
-支持 pythonw.exe 无控制台窗口运行
+AI 学习助手 — 桌面启动器（端口 5000 固定）
+先杀旧进程 → 启动服务 → 打开 Chrome 无边框窗口
 """
 
 import subprocess
@@ -10,8 +9,10 @@ import os
 import time
 import threading
 import logging
+import socket
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PORT = 5000
 sys.path.insert(0, BASE_DIR)
 os.chdir(BASE_DIR)
 
@@ -21,49 +22,44 @@ logging.basicConfig(
     format="%(asctime)s %(message)s",
 )
 
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('127.0.0.1', port)) == 0
 
 def start_server():
     import uvicorn
     from app.main import app
-    uvicorn.run(app, host="127.0.0.1", port=5000, log_level="warning")
-
+    uvicorn.run(app, host="127.0.0.1", port=PORT, log_level="warning")
 
 def open_app():
     import urllib.request
     import webbrowser
 
-    for i in range(30):
+    url = f"http://127.0.0.1:{PORT}"
+    for _ in range(30):
         try:
-            urllib.request.urlopen("http://127.0.0.1:5000/")
+            urllib.request.urlopen(url)
             break
         except Exception:
             time.sleep(0.5)
 
+    # Chrome app mode
     chrome_paths = [
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
         os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe"),
     ]
-
     for chrome in chrome_paths:
         if os.path.exists(chrome):
-            subprocess.Popen([
-                chrome,
-                "--app=http://127.0.0.1:8000",
-                "--window-size=1280,800",
-            ])
+            subprocess.Popen([chrome, f"--app={url}", "--window-size=1280,800"])
             return
-
-    webbrowser.open("http://127.0.0.1:8000")
-
+    webbrowser.open(url)
 
 if __name__ == "__main__":
-    logging.info("AI 学习助手 启动中...")
-    # 确保 data 目录存在
     os.makedirs(os.path.join(BASE_DIR, "data"), exist_ok=True)
+    logging.info(f"Starting on port {PORT}")
 
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
-
     open_app()
     server_thread.join()
