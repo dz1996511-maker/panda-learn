@@ -1,49 +1,105 @@
 {% extends "base.html" %}
 {% block title %}知识库 - 熊猫学习{% endblock %}
-{% block page_title %}知识库{% endblock %}
+{% block page_title %}📚 知识库{% endblock %}
 {% block header_actions %}
-<a href="/knowledge/upload/" class="btn btn-primary btn-sm">+ 导入</a>
+<a href="/knowledge/upload/" class="btn btn-primary btn-sm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;">
+        <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+    导入
+</a>
 {% endblock %}
 {% block content %}
 
 {% if error %}
-<div class="chat-bubble" style="border-color:#5a1a1a;">
-    <span style="color:#ff6b6b;">{{ error }}</span>
+<div class="kb-error">
+    <span>⚠</span> {{ error }}
 </div>
 {% endif %}
 
 {% if documents %}
-<table class="data-table">
-    <thead>
-        <tr>
-            <th>标题</th>
-            <th>类型</th>
-            <th>分块</th>
-            <th>导入时间</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for doc in documents %}
-        <tr>
-            <td><a href="/knowledge/{{ doc.id }}">{{ doc.title }}</a></td>
-            <td><span class="tag tag-learning">{{ doc.file_type or doc.source_type }}</span></td>
-            <td>{{ doc.chunk_count }}</td>
-            <td style="color:#666;font-size:12px;">{{ doc.imported_at.strftime('%Y-%m-%d %H:%M') if doc.imported_at else '-' }}</td>
-            <td>
-                <form action="/knowledge/{{ doc.id }}/delete" method="post" onsubmit="return confirm('确定删除？')">
-                    <button type="submit" class="btn btn-sm btn-danger">删除</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="kb-stats">
+    <div class="kb-stat-item">
+        <span class="kb-stat-value">{{ documents|length }}</span>
+        <span class="kb-stat-label">文档总数</span>
+    </div>
+    <div class="kb-stat-item">
+        <span class="kb-stat-value">{{ documents|sum(attribute='chunk_count') }}</span>
+        <span class="kb-stat-label">总片段数</span>
+    </div>
+    <div class="kb-stat-item">
+        <span class="kb-stat-value">{{ documents|sum(attribute='char_count') }}</span>
+        <span class="kb-stat-label">总字符数</span>
+    </div>
+</div>
+
+<div class="kb-list">
+    {% for doc in documents %}
+    <div class="kb-item" onclick="location.href='/knowledge/{{ doc.id }}'">
+        <div class="kb-item-icon">
+            {% if doc.file_type == 'pdf' %}
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            {% elif doc.file_type in ('txt', 'md') %}
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+            </svg>
+            {% else %}
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            {% endif %}
+        </div>
+        <div class="kb-item-body">
+            <div class="kb-item-title">{{ doc.title }}</div>
+            <div class="kb-item-meta">
+                <span class="kb-item-tag">{{ doc.file_type or doc.source_type }}</span>
+                <span>{{ doc.chunk_count }} 片段</span>
+                <span>{{ doc.imported_at.strftime('%Y-%m-%d %H:%M') if doc.imported_at else '-' }}</span>
+            </div>
+        </div>
+        <div class="kb-item-actions">
+            <a href="/knowledge/{{ doc.id }}" class="kb-view-btn" title="查看详情">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </a>
+            <form action="/knowledge/{{ doc.id }}/delete" method="post" onsubmit="return confirm('确定删除「{{ doc.title }}」？')">
+                <button type="submit" class="kb-delete-btn" title="删除文档">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 {% else %}
-<div class="empty-state">
-    <p>📚 知识库还空空的</p>
-    <p style="font-size:12px;">导入你的第一份资料吧</p>
-    <a href="/knowledge/upload/" class="btn btn-primary" style="margin-top:12px;">导入资料</a>
+<div class="kb-empty">
+    <div class="kb-empty-icon">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="12" x2="12" y2="18"></line><line x1="9" y1="15" x2="15" y2="15"></line>
+        </svg>
+    </div>
+    <h3 class="kb-empty-title">知识库为空</h3>
+    <p class="kb-empty-desc">导入你的第一份资料，开始学习之旅</p>
+    <a href="/knowledge/upload/" class="btn btn-primary" style="margin-top:16px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:4px;">
+            <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        导入资料
+    </a>
 </div>
 {% endif %}
 {% endblock %}
