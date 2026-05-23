@@ -88,20 +88,19 @@ async def global_exception_handler(request: Request, exc: Exception):
     print(f"[ERROR] {error_msg}")
     traceback.print_exc()
     return HTMLResponse(
-        f'<div style="padding:40px;background:#080808;color:#e0e0e0;min-height:100vh;font-family:sans-serif;">'
-        f'<h2 style="color:#ff6b6b;">发生错误</h2>'
-        f'<p style="color:#888;">{error_msg}</p>'
-        f'<a href="/" style="color:#4fc3f7;">← 返回首页</a>'
+        f'<div style="padding:40px;background:#080808;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;">'
+        f'<div style="font-size:48px;margin-bottom:16px;">🐼</div>'
+        f'<h2 style="color:#ff6b6b;margin-bottom:8px;">出错了</h2>'
+        f'<p style="color:#888;margin-bottom:20px;max-width:400px;text-align:center;">{error_msg}</p>'
+        f'<a href="/" class="btn" style="color:#4fc3f7;">← 返回首页</a>'
         f'</div>',
         status_code=500,
     )
 
 @app.exception_handler(404)
 async def not_found(request: Request, exc):
-    return HTMLResponse(
-        f'<div style="padding:40px;background:#080808;color:#e0e0e0;min-height:100vh;font-family:sans-serif;">'
-        f'<h2 style="color:#888;">页面未找到</h2>'
-        f'<a href="/" style="color:#4fc3f7;">← 返回首页</a>'
-        f'</div>',
+    return templates.TemplateResponse(
+        request=request,
+        name="errors/404.html",
         status_code=404,
     )

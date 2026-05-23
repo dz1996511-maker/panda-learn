@@ -114,7 +114,7 @@ function submitAnswer(qIdx, total) {
         userAnswer = answers[qIdx] || '';
         {% endif %}
 
-        var correct = '{{ q.answer|e }}';
+        var correct = '{{ q.answer }}'.trim();
         var isCorrect = userAnswer.toLowerCase() === correct.toLowerCase();
         answers[qIdx + '_result'] = isCorrect;
 
@@ -169,7 +169,11 @@ function nextQuestion(qIdx, total) {
 }
 
 function startQuiz() {
-    window.location.href = '/practice/start';
+    var f = document.createElement('form');
+    f.method = 'POST';
+    f.action = '/practice/start';
+    document.body.appendChild(f);
+    f.submit();
 }
 </script>
 
