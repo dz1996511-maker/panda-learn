@@ -16,6 +16,7 @@
 {% endif %}
 
 {% if documents %}
+<!-- 统计栏 -->
 <div class="kb-stats">
     <div class="kb-stat-item">
         <span class="kb-stat-value">{{ documents|length }}</span>
@@ -31,46 +32,61 @@
     </div>
 </div>
 
-<div class="kb-list" id="kb-list">
+<!-- 卡片网格（可拖拽） -->
+<div class="kb-grid" id="kb-grid">
     {% for doc in documents %}
-    <div class="kb-item" data-id="{{ doc.id }}" onclick="viewDoc({{ doc.id }})">
-        <div class="kb-item-icon">
+    <div class="kb-card" draggable="true" data-id="{{ doc.id }}" data-order="{{ loop.index0 }}"
+         onclick="viewDoc({{ doc.id }})">
+        <!-- 拖拽手柄 -->
+        <div class="kb-card-drag-handle" onmousedown="event.stopPropagation();">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round">
+                <line x1="8" y1="6" x2="16" y2="6"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+                <line x1="8" y1="18" x2="16" y2="18"></line>
+            </svg>
+        </div>
+
+        <!-- 文件图标 -->
+        <div class="kb-card-icon">
             {% if doc.file_type == 'pdf' %}
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="1.8">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="1.8">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line>
             </svg>
             {% elif doc.file_type in ('txt', 'md') %}
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="1.8">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="1.8">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
             </svg>
             {% else %}
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
             </svg>
             {% endif %}
         </div>
-        <div class="kb-item-body">
-            <div class="kb-item-title">{{ doc.title }}</div>
-            <div class="kb-item-meta">
-                <span class="kb-item-tag">{{ doc.file_type or doc.source_type }}</span>
-                <span>{{ doc.chunk_count }} 片段</span>
-                <span>{{ doc.imported_at.strftime('%Y-%m-%d %H:%M') if doc.imported_at else '-' }}</span>
+
+        <!-- 文件信息 -->
+        <div class="kb-card-info">
+            <div class="kb-card-title">{{ doc.title }}</div>
+            <div class="kb-card-meta">
+                <span class="kb-card-tag">{{ doc.file_type or doc.source_type }}</span>
+                <span>{{ doc.chunk_count }} 片段 · {{ doc.char_count }} 字符</span>
+                <span>{{ doc.imported_at.strftime('%m-%d %H:%M') if doc.imported_at else '' }}</span>
             </div>
         </div>
-        <div class="kb-item-actions">
-            <button class="kb-view-btn" onclick="event.stopPropagation();viewDoc({{ doc.id }})" title="查看">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
+
+        <!-- 操作按钮 -->
+        <div class="kb-card-actions" onclick="event.stopPropagation();">
+            <button class="kb-card-btn view" onclick="viewDoc({{ doc.id }})" title="查看">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
                 </svg>
             </button>
-            <button class="kb-delete-btn" onclick="event.stopPropagation();deleteDoc({{ doc.id }})" title="删除">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <button class="kb-card-btn danger" onclick="deleteDoc({{ doc.id }})" title="删除">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                 </svg>
@@ -80,17 +96,18 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="kb-empty">
-    <div class="kb-empty-icon">
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.2">
+<!-- 空状态（可拖拽上传） -->
+<div class="kb-dropzone" id="kb-dropzone">
+    <div class="kb-dropzone-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
             <line x1="12" y1="12" x2="12" y2="18"></line><line x1="9" y1="15" x2="15" y2="15"></line>
         </svg>
     </div>
-    <h3 class="kb-empty-title">知识库为空</h3>
-    <p class="kb-empty-desc">导入你的第一份资料，开始学习之旅</p>
-    <a href="/knowledge/upload/" class="btn btn-primary" style="margin-top:16px;">
+    <h3 class="kb-dropzone-title">知识库为空</h3>
+    <p class="kb-dropzone-desc">拖拽文件至此区域，或点击下方按钮导入</p>
+    <a href="/knowledge/upload/" class="btn btn-primary" style="margin-top:12px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:4px;">
             <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
@@ -99,8 +116,287 @@
 </div>
 {% endif %}
 
+<style>
+/* ─── 知识库卡片网格 ─── */
+.kb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 10px;
+}
+
+/* ─── 卡片 ─── */
+.kb-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    cursor: grab;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    user-select: none;
+}
+.kb-card:hover {
+    border-color: var(--border-light);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    transform: translateY(-2px);
+}
+.kb-card:active { cursor: grabbing; }
+
+/* 拖拽手柄 */
+.kb-card-drag-handle {
+    flex-shrink: 0;
+    width: 20px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    cursor: grab;
+}
+.kb-card:hover .kb-card-drag-handle { opacity: 1; }
+
+/* 文件图标 */
+.kb-card-icon {
+    width: 44px; height: 44px;
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* 信息 */
+.kb-card-info { flex: 1; min-width: 0; }
+.kb-card-title {
+    font-size: 14px; font-weight: 500; color: var(--text);
+    margin-bottom: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.kb-card-meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--text-dim);
+    flex-wrap: wrap;
+}
+.kb-card-tag {
+    padding: 1px 7px; border-radius: 3px;
+    background: rgba(79,195,247,0.08);
+    color: var(--accent); font-weight: 500;
+    font-size: 10px; text-transform: uppercase;
+}
+
+/* 操作按钮 */
+.kb-card-actions {
+    display: flex; gap: 2px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.kb-card:hover .kb-card-actions { opacity: 1; }
+
+.kb-card-btn {
+    width: 30px; height: 30px;
+    border-radius: 6px; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; background: transparent;
+    transition: all 0.15s;
+    color: var(--text-muted);
+}
+.kb-card-btn.view:hover { background: var(--bg-hover); color: var(--accent); }
+.kb-card-btn.danger:hover { background: var(--error-bg); color: var(--error); }
+
+/* ─── 拖拽状态 ─── */
+.kb-card.dragging {
+    opacity: 0.4;
+    transform: scale(0.95) rotate(1deg);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    border-color: var(--accent);
+    border-style: dashed;
+    cursor: grabbing;
+}
+
+/* 占位符虚线框 */
+.kb-card.drag-over {
+    border-color: var(--accent);
+    border-style: dashed;
+    background: rgba(79,195,247,0.05);
+    transform: scale(1.02);
+    box-shadow: 0 0 0 3px var(--border-glow);
+}
+
+/* ─── 拖拽空状态（可放置区域高亮） ─── */
+.kb-dropzone {
+    text-align: center;
+    padding: 64px 20px;
+    border: 2px dashed var(--border-light);
+    border-radius: var(--radius-xl);
+    transition: all 0.2s;
+}
+.kb-dropzone.dragover {
+    border-color: var(--accent);
+    background: rgba(79,195,247,0.05);
+    box-shadow: inset 0 0 30px rgba(79,195,247,0.05);
+}
+.kb-dropzone-icon { margin-bottom: 16px; }
+.kb-dropzone-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.kb-dropzone-desc { font-size: 13px; color: var(--text-dim); }
+
+/* ─── Toast 消息 ─── */
+.toast-order-saved {
+    border-left: 3px solid var(--success);
+}
+</style>
+
 <script>
-// 导入按钮加载态
+/* ═══════════════════════════════════════
+   拖拽排序 (HTML5 Drag & Drop API)
+   ─ 拖拽开始: 记录源卡片
+   ─ 拖拽经过: 检测目标位置, 交换 DOM
+   ─ 拖拽结束: 持久化新顺序到 localStorage
+   ═══════════════════════════════════════ */
+
+(function() {
+    var grid = document.getElementById('kb-grid');
+    if (!grid) return;
+
+    var dragSrcId = null;
+
+    // 遍历所有卡片绑定事件
+    grid.querySelectorAll('.kb-card').forEach(function(card) {
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragenter', handleDragEnter);
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('dragleave', handleDragLeave);
+        card.addEventListener('drop', handleDrop);
+        card.addEventListener('dragend', handleDragEnd);
+    });
+
+    function handleDragStart(e) {
+        dragSrcId = this.dataset.id;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.dataset.id);
+        // 让拖拽时的半透明预览显示
+        this.style.opacity = '0.4';
+    }
+
+    function handleDragEnter(e) {
+        e.preventDefault();
+        // 跳过自身
+        if (this.dataset.id === dragSrcId) return;
+        this.classList.add('drag-over');
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+
+        var targetId = this.dataset.id;
+        if (targetId === dragSrcId) return;
+
+        // 交换两个卡片在 DOM 中的位置
+        var srcCard = grid.querySelector('.kb-card[data-id="' + dragSrcId + '"]');
+        var targetCard = this;
+
+        if (srcCard && targetCard) {
+            // 判断拖拽方向: 如果源在目标之前, 插到目标后面; 反之插到目标前面
+            var srcIndex = Array.from(grid.children).indexOf(srcCard);
+            var tgtIndex = Array.from(grid.children).indexOf(targetCard);
+
+            if (srcIndex < tgtIndex) {
+                grid.insertBefore(srcCard, targetCard.nextSibling);
+            } else {
+                grid.insertBefore(srcCard, targetCard);
+            }
+
+            // 更新 data-order 属性
+            updateOrders();
+            // 持久化到 localStorage
+            saveOrder();
+        }
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        this.style.opacity = '';
+        // 清除所有高亮
+        grid.querySelectorAll('.kb-card').forEach(function(c) {
+            c.classList.remove('drag-over');
+        });
+    }
+
+    function updateOrders() {
+        grid.querySelectorAll('.kb-card').forEach(function(card, idx) {
+            card.dataset.order = idx;
+        });
+    }
+
+    // ─── localStorage 持久化 ───
+    var STORAGE_KEY = 'panda_kb_order';
+
+    function saveOrder() {
+        var order = [];
+        grid.querySelectorAll('.kb-card').forEach(function(card) {
+            order.push(parseInt(card.dataset.id));
+        });
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(order));
+            showToast('排序已保存', 'success', 1500);
+        } catch(e) {}
+    }
+
+    // ─── 页面加载时恢复顺序 ───
+    function restoreOrder() {
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return;
+            var order = JSON.parse(saved);
+            if (!Array.isArray(order) || order.length < 2) return;
+
+            var cards = {};
+            grid.querySelectorAll('.kb-card').forEach(function(c) {
+                cards[c.dataset.id] = c;
+            });
+
+            // 按保存的顺序重排 DOM
+            var parent = grid;
+            order.forEach(function(id) {
+                var idStr = String(id);
+                if (cards[idStr]) {
+                    parent.appendChild(cards[idStr]);
+                    delete cards[idStr];
+                }
+            });
+            // 剩余的（新增的）排在最后
+            Object.keys(cards).forEach(function(id) {
+                parent.appendChild(cards[id]);
+            });
+
+            updateOrders();
+        } catch(e) {}
+    }
+
+    restoreOrder();
+})();
+
+/* ═══════════════════════════════════════
+   Toast + 导入/删除 (同上一版)
+   ═══════════════════════════════════════ */
+
 document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('import-btn');
     if (btn) {
@@ -113,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function viewDoc(id) { window.location.href = '/knowledge/' + id; }
 
 function deleteDoc(id) {
-    showConfirm('确定删除此文档？删除后不可恢复。', function() {
+    showConfirm('确定删除此文档？', function() {
         var toast = showLoading('正在删除...');
         var form = new FormData();
         fetch('/knowledge/' + id + '/delete', { method: 'POST', body: form })
@@ -121,12 +417,12 @@ function deleteDoc(id) {
             hideLoading(toast);
             if (r.ok || r.redirected) {
                 showSuccess('删除成功');
-                var item = document.querySelector('.kb-item[data-id="' + id + '"]');
-                if (item) {
-                    item.style.transform = 'translateX(100%)';
-                    item.style.opacity = '0';
-                    item.style.transition = 'all 0.3s ease';
-                    setTimeout(function() { window.location.reload(); }, 300);
+                var card = document.querySelector('.kb-card[data-id="' + id + '"]');
+                if (card) {
+                    card.style.transform = 'scale(0.9)';
+                    card.style.opacity = '0';
+                    card.style.transition = 'all 0.25s ease';
+                    setTimeout(function() { window.location.reload(); }, 250);
                 } else { window.location.reload(); }
             } else { showError('删除失败'); }
         })
