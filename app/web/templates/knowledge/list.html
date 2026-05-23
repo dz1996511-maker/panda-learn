@@ -315,6 +315,8 @@
         }
     }
 
+    var _dragJustEnded = false;
+
     function handleEnd(e) {
         this.classList.remove('dragging');
         this.style.opacity = '';
@@ -322,11 +324,22 @@
             c.classList.remove('drag-over');
         });
 
-        // 延迟关闭平滑动画
+        // 防止 drop 后的 click 跳转
+        _dragJustEnded = true;
+        setTimeout(function() { _dragJustEnded = false; }, 300);
+
         shiftTimer = setTimeout(function() {
             grid.classList.remove('shifting');
         }, 300);
     }
+
+    // 拦截 drag 后的 click 事件
+    grid.addEventListener('click', function(e) {
+        if (_dragJustEnded) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, true);
 
     function updateOrders() {
         grid.querySelectorAll('.kb-card').forEach(function(c, i) { c.dataset.order = i; });
