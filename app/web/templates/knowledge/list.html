@@ -2,40 +2,38 @@
 {% block title %}知识库 - 熊猫学习{% endblock %}
 {% block page_title %}📚 知识库{% endblock %}
 {% block header_actions %}
-<a href="/knowledge/upload/" class="btn btn-primary btn-sm">
+<a href="/knowledge/upload/" class="btn btn-primary btn-sm" id="import-btn">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;">
         <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
-    导入
+    <span id="import-text">导入</span>
 </a>
 {% endblock %}
 {% block content %}
 
 {% if error %}
-<div class="kb-error">
-    <span>⚠</span> {{ error }}
-</div>
+<div class="kb-error"><span>⚠</span> {{ error }}</div>
 {% endif %}
 
 {% if documents %}
 <div class="kb-stats">
     <div class="kb-stat-item">
         <span class="kb-stat-value">{{ documents|length }}</span>
-        <span class="kb-stat-label">文档总数</span>
+        <span class="kb-stat-label">文档</span>
     </div>
     <div class="kb-stat-item">
         <span class="kb-stat-value">{{ documents|sum(attribute='chunk_count') }}</span>
-        <span class="kb-stat-label">总片段数</span>
+        <span class="kb-stat-label">片段</span>
     </div>
     <div class="kb-stat-item">
         <span class="kb-stat-value">{{ documents|sum(attribute='char_count') }}</span>
-        <span class="kb-stat-label">总字符数</span>
+        <span class="kb-stat-label">字符</span>
     </div>
 </div>
 
-<div class="kb-list">
+<div class="kb-list" id="kb-list">
     {% for doc in documents %}
-    <div class="kb-item" onclick="location.href='/knowledge/{{ doc.id }}'">
+    <div class="kb-item" data-id="{{ doc.id }}" onclick="viewDoc({{ doc.id }})">
         <div class="kb-item-icon">
             {% if doc.file_type == 'pdf' %}
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="1.8">
@@ -65,20 +63,18 @@
             </div>
         </div>
         <div class="kb-item-actions">
-            <a href="/knowledge/{{ doc.id }}" class="kb-view-btn" title="查看详情">
+            <button class="kb-view-btn" onclick="event.stopPropagation();viewDoc({{ doc.id }})" title="查看">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                 </svg>
-            </a>
-            <form action="/knowledge/{{ doc.id }}/delete" method="post" onsubmit="return confirm('确定删除「{{ doc.title }}」？')">
-                <button type="submit" class="kb-delete-btn" title="删除文档">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                </button>
-            </form>
+            </button>
+            <button class="kb-delete-btn" onclick="event.stopPropagation();deleteDoc({{ doc.id }})" title="删除">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
         </div>
     </div>
     {% endfor %}
@@ -102,4 +98,40 @@
     </a>
 </div>
 {% endif %}
+
+<script>
+// 导入按钮加载态
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('import-btn');
+    if (btn) {
+        btn.addEventListener('click', function() {
+            document.getElementById('import-text').textContent = '导入中...';
+        });
+    }
+});
+
+function viewDoc(id) { window.location.href = '/knowledge/' + id; }
+
+function deleteDoc(id) {
+    showConfirm('确定删除此文档？删除后不可恢复。', function() {
+        var toast = showLoading('正在删除...');
+        var form = new FormData();
+        fetch('/knowledge/' + id + '/delete', { method: 'POST', body: form })
+        .then(function(r) {
+            hideLoading(toast);
+            if (r.ok || r.redirected) {
+                showSuccess('删除成功');
+                var item = document.querySelector('.kb-item[data-id="' + id + '"]');
+                if (item) {
+                    item.style.transform = 'translateX(100%)';
+                    item.style.opacity = '0';
+                    item.style.transition = 'all 0.3s ease';
+                    setTimeout(function() { window.location.reload(); }, 300);
+                } else { window.location.reload(); }
+            } else { showError('删除失败'); }
+        })
+        .catch(function() { hideLoading(toast); showError('网络错误'); });
+    });
+}
+</script>
 {% endblock %}

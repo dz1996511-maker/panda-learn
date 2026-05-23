@@ -593,6 +593,84 @@ pre {
 .quiz-option.selected .option-text { color: var(--accent); font-weight: 500; }
 
 
+
+/* ─── Toast 通知 ─── */
+#toast-container {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+    max-width: 360px;
+}
+
+.toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 13px;
+    color: var(--text);
+    backdrop-filter: blur(12px);
+}
+.toast-visible { transform: translateX(0); opacity: 1; }
+.toast-hiding { transform: translateX(120%); opacity: 0; }
+
+.toast-success { border-left: 3px solid var(--success); }
+.toast-error   { border-left: 3px solid var(--error); }
+.toast-loading { border-left: 3px solid var(--accent); }
+.toast-info    { border-left: 3px solid var(--accent); }
+
+.toast-icon { font-size: 16px; font-weight: 700; flex-shrink: 0; width: 20px; text-align: center; }
+.toast-msg  { flex: 1; line-height: 1.4; }
+.toast-spin { animation: spin 0.8s linear infinite; display: inline-block; }
+
+/* 确认对话框 */
+.toast-confirm {
+    padding: 0;
+    overflow: hidden;
+}
+.toast-confirm-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 20px;
+    width: 280px;
+}
+.toast-confirm-msg { font-size: 14px; color: var(--text); line-height: 1.5; }
+.toast-confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ─── 骨架屏 ─── */
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-hover) 50%, var(--bg-surface) 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 6px;
+}
+.skeleton-line { height: 14px; margin-bottom: 8px; width: 100%; }
+.skeleton-line.short { width: 60%; }
+.skeleton-line.tiny { width: 30%; height: 10px; }
+.skeleton-card {
+    height: 60px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 6px;
+}
+
 /* ─── 知识库页面 ─── */
 .kb-stats {
     display: grid;
