@@ -3,6 +3,12 @@
 {% block page_title %}🧠 学习{% endblock %}
 {% block content %}
 
+{% if request.query_params.get("extracted") %}
+<div class="chat-bubble" style="border-color:#1a3a1a;">
+    <span style="color:#66bb6a;">✓ 概念提取完成！可以在底部输入框问关于文档的问题</span>
+</div>
+{% endif %}
+
 {% if doc_count > 0 %}
 <div class="chat-bubble" style="border-color:#1a3a1a;">
     <div class="chat-bubble-header">

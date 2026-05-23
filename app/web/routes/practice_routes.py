@@ -19,6 +19,19 @@ from app.llm.factory import get_provider
 from app.config import settings
 from app.web.templates import templates
 
+import uuid
+import time
+
+# 内存题目存储（避免 URL 传 JSON 的脆弱性）
+_quiz_store = {}  # {quiz_id: {questions: [...], timestamp: float}}
+_QUIZ_TTL = 600  # 10 分钟过期
+
+def _clean_old_quizzes():
+    now = time.time()
+    expired = [k for k, v in _quiz_store.items() if now - v['timestamp'] > _QUIZ_TTL]
+    for k in expired:
+        _quiz_store.pop(k, None)
+
 router = APIRouter(prefix="/practice", tags=["practice"])
 
 QUIZ_SYSTEM = "你是一个出题老师。请根据提供的资料生成练习题，用中文。"
@@ -153,19 +166,20 @@ async def start_quiz(
     if not questions:
         return RedirectResponse(url="/practice?error=出题失败，请检查API配置", status_code=303)
 
-    # 存入临时 quiz session（简化处理，直接渲染页面）
-    # 用 query param 传递 JSON（短数据可行）
-    q_json = json.dumps(questions, ensure_ascii=False)
-    return RedirectResponse(url=f"/practice/quiz?q={q_json}", status_code=303)
+    # 存入内存存储
+    _clean_old_quizzes()
+    quiz_id = uuid.uuid4().hex[:12]
+    _quiz_store[quiz_id] = {'questions': questions, 'timestamp': time.time()}
+    return RedirectResponse(url=f"/practice/quiz/{quiz_id}", status_code=303)
 
 
-@router.get("/quiz", response_class=HTMLResponse)
-async def show_quiz(request: Request, q: str = ""):
+@router.get("/quiz/{quiz_id}", response_class=HTMLResponse)
+async def show_quiz(request: Request, quiz_id: str):
     """显示测验题目"""
-    try:
-        questions = json.loads(q)
-    except Exception:
-        return RedirectResponse(url="/practice", status_code=303)
+    entry = _quiz_store.get(quiz_id)
+    if not entry:
+        return RedirectResponse(url="/practice?error=题目已过期，请重新出题", status_code=303)
+    questions = entry['questions']
 
     return templates.TemplateResponse(
         request=request,

@@ -1,7 +1,21 @@
 {% extends "base.html" %}
 {% block title %}分析 - 熊猫学习{% endblock %}
-{% block page_title %}学习分析{% endblock %}
+{% block page_title %}📊 学习分析{% endblock %}
 {% block content %}
+
+{% if error %}
+<div class="chat-bubble" style="border-color:#5a1a1a;">
+    <span style="color:#ff6b6b;">⚠ {{ error }}</span>
+</div>
+{% endif %}
+
+{% if not has_api_key %}
+<div class="chat-bubble" style="border-color:#5a1a1a;text-align:center;padding:24px;">
+    <div style="font-size:32px;margin-bottom:8px;">🔑</div>
+    <p style="color:#ff6b6b;margin-bottom:12px;">未配置 API Key，分析功能无法使用</p>
+    <a href="/settings/" class="btn btn-primary btn-sm">去配置</a>
+</div>
+{% endif %}
 
 <div class="card-grid">
     <div class="card">
@@ -56,12 +70,16 @@
 <div class="chat-bubble">
     <div class="chat-bubble-header">
         <span class="chat-bubble-title">📄 文档分析</span>
+        {% if has_api_key and documents %}
+        <span style="font-size:11px;color:#555;">点击按钮开始分析</span>
+        {% endif %}
     </div>
     {% if documents %}
     <table class="data-table">
         <thead>
             <tr>
                 <th>文档</th>
+                <th>摘要</th>
                 <th></th>
             </tr>
         </thead>
@@ -69,12 +87,21 @@
             {% for doc in documents %}
             <tr>
                 <td>{{ doc.title }}</td>
-                <td>
-                    <form action="/analysis/summarize/{{ doc.id }}" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-sm">生成摘要</button>
+                <td style="font-size:12px;color:#666;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    {{ doc.summary[:60] ~ '...' if doc.summary else '—' }}
+                </td>
+                <td style="text-align:right;">
+                    <form action="/analysis/summarize/{{ doc.id }}" method="post" style="display:inline;"
+                          onsubmit="this.querySelector('button').textContent='生成中...';this.querySelector('button').disabled=true;">
+                        <button type="submit" class="btn btn-sm" {% if not has_api_key %}disabled style="opacity:0.4;"{% endif %}>
+                            {% if doc.summary %}重新摘要{% else %}生成摘要{% endif %}
+                        </button>
                     </form>
-                    <form action="/analysis/extract-concepts/{{ doc.id }}" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-sm">提取概念</button>
+                    <form action="/analysis/extract-concepts/{{ doc.id }}" method="post" style="display:inline; margin-left:4px;"
+                          onsubmit="this.querySelector('button').textContent='提取中...';this.querySelector('button').disabled=true;">
+                        <button type="submit" class="btn btn-sm" {% if not has_api_key %}disabled style="opacity:0.4;"{% endif %}>
+                            提取概念
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -83,8 +110,20 @@
     </table>
     {% else %}
     <div class="empty-state" style="padding:24px 0;">
-        <p>暂无文档</p>
+        <p>📚 还没有文档</p>
+        <p style="font-size:12px;margin-top:4px;">先去知识库导入资料</p>
+        <a href="/knowledge/upload/" class="btn btn-sm" style="margin-top:8px;">导入文档</a>
     </div>
     {% endif %}
 </div>
+
+{% if not has_api_key and documents %}
+<div class="chat-bubble" style="text-align:center;padding:16px;border-color:#3a1a1a;">
+    <p style="font-size:12px;color:#888;">
+        分析功能需要调用 AI 模型，请先在
+        <a href="/settings/" style="color:#4fc3f7;">设置页面</a>
+        配置 DeepSeek API Key
+    </p>
+</div>
+{% endif %}
 {% endblock %}
