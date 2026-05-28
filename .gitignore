@@ -1,7 +1,29 @@
+# Environment
 .env
+
+# Data (SQLite, ChromaDB, uploads)
 data/
+
+# Python cache
 __pycache__/
 *.pyc
+*.pyo
 .pytest_cache/
-.env
+
+# Virtual environment
 .venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
