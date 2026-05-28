@@ -1,4 +1,4 @@
-# 🐼 Panda Learn — AI 学习助手
+# 🐼 Panda Learn — 震惊！这个AI学习助手把RAG+间隔重复玩明白了
 
 <div align="center">
 
@@ -6,18 +6,23 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![DeepSeek](https://img.shields.io/badge/LLM-DeepSeek%20|%20Claude%20|%20GPT-4F5A8B?logo=openai&logoColor=white)](https://github.com/dz1996511-maker/panda-learn)
 
-**上传文档 → AI 自动提取知识 → 间隔重复复习 → 掌握度追踪**
+**🏆 上传PDF → AI自动提取知识点 → 间隔重复复习 → 掌握度追踪 — 考研/考证/自学神器**
 
-[English](#english) · [中文](#中文)
+[English](#english) · [中文](#中文) · [快速开始](#-快速开始) · [功能列表](#-核心功能)
 
 </div>
 
 <a name="中文"></a>
 
-## 📖 中文介绍
+## 📖 这是啥？
 
-**熊猫学习**是一个基于 RAG（检索增强生成）+ SM-2 间隔重复算法的 AI 学习助手。上传 PDF/文档，AI 自动提取知识点，生成测验题，并通过科学的间隔重复帮你巩固记忆。
+别人刷题背单词，你直接上传 PDF 让 AI 帮你学。
+
+**熊猫学习**是一个基于 **RAG（检索增强生成）** + **SM-2 间隔重复算法**的开源 AI 学习助手。上传你的 PDF/教材/笔记，AI 自动提取知识点、出题、安排复习计划。支持 DeepSeek / Claude / GPT 自由切换。
+
+> 💡 适合：考研党、留学生、程序员学新技术、考证党
 
 ### ✨ 核心功能
 
@@ -133,9 +138,9 @@ pytest tests/ -v
 
 <a name="english"></a>
 
-## 📖 English
+## 📖 English — RAG + SM-2 AI Learning Assistant
 
-**Panda Learn** is an AI-powered personal learning assistant built on RAG (Retrieval-Augmented Generation) and the SM-2 spaced repetition algorithm. Upload documents, let AI extract knowledge points, generate quizzes, and reinforce memory through scientific review scheduling.
+**Panda Learn** is an open-source AI-powered learning assistant built on RAG (Retrieval-Augmented Generation) and the SM-2 spaced repetition algorithm. Upload PDFs/docs, AI auto-extracts knowledge points, generates quizzes, and schedules reviews. Supports DeepSeek / Claude / GPT.
 
 ### ✨ Features
 
